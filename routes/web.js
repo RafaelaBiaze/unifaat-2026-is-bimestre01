@@ -7,7 +7,7 @@ export default (function () {
 
     const router = Router();
 
-    router.post('/webhook', WebhookHelloController);
+    router.post('/webhook/payment', WebhookHelloController);
 
     router.get('/', JsonHelloController);
 
