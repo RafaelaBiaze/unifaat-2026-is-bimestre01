@@ -8,7 +8,7 @@ import {
 
 export default {
     name: "integracao-s3-hubspot",
-    description: "",
+    description: "Consome a API do HubSpot e salva os JSONs das companies no AWS S3",
 
     arguments: {
 
