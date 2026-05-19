@@ -3,6 +3,7 @@ import {
     CreateBucketCommand,
     PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import axios from "axios";
 
 
 
@@ -32,6 +33,46 @@ export default {
 
 
             /** TF 10 */
+            const RA = "6324518";
+            const bucketName = "unifaat-teste";
+
+            console.log("Buscando companies na API do HubSpot...");
+
+            // Fazer o GET na API do HubSpot
+            const response = await axios.get("https://api.hubapi.com/companies/v2/companies/paged", {
+                headers: {
+                    Authorization: `Bearer ${process.env.HUBSPOT_API_TOKEN}`
+                }
+            });
+
+            const companies = response.data.companies;
+
+            if (!companies || companies.length === 0) {
+                console.log("Nenhuma company encontrada no HubSpot para exportar.");
+                return;
+            }
+
+            console.log(`${companies.length} companies encontradas. Iniciando envio para o S3...`);
+
+            // Iterar sobre os resultados e enviar para o S3
+            for (const company of companies) {
+                const companyId = company.companyId;
+                const companyJson = JSON.stringify(company, null, 2);
+
+                const params = {
+                    Bucket: bucketName,
+                    Key: `${RA}/${companyId}.json`, // Cria a pasta do RA automaticamente
+                    Body: companyJson,
+                    ContentType: "application/json"
+                };
+
+                const command = new PutObjectCommand(params);
+                await s3Client.send(command);
+
+                console.log(`Sucesso: Arquivo salvo em ${RA}/${companyId}.json`);
+            }
+
+            console.log("Integração concluída! Todos os arquivos foram enviados.");
         } catch (error) {
             console.error("Erro ao criar bucket ou inserir arquivo:", error);
         }
